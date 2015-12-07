@@ -1,0 +1,22 @@
+plugins {
+	id 'java'
+	id 'maven'
+}
+
+group = 'net.akehurst.build'
+version = '1.0.0'
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	jcenter()
+	maven {
+		url 'https://dl.bintray.com/dhakehurst/maven'
+	}
+}
+
+dependencies {
+	compile 'org.slf4j:slf4j-api:1.7+'
+	compile 'commons-io:commons-io:2.2'
+	compile 'net.akehurst.eclipse:net.akehurst.eclipse.simple.equinox:1.0.0'
+}
