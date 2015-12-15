@@ -133,9 +133,9 @@ public class SimpleOsgiP2Resolver {
 			IQueryResult<IArtifactKey> res = remoteRepo.query(query, new NullProgressMonitor());
 			for (IArtifactKey ak : res) {
 				String v = ak.getVersion().getOriginal();
-				if (v.contains("-")) {
-					v = v.substring(0, v.indexOf('-'));
-				}
+//				if (v.contains("-")) {
+//					v = v.substring(0, v.indexOf('-'));
+//				}
 				result.add(v);
 			}
 		} catch (ProvisionException ex) {
@@ -149,9 +149,12 @@ public class SimpleOsgiP2Resolver {
 		OutputStream destination = null;
 		try {
 			String classifier = "osgi.bundle";
+			VersionRange requiredVersionRange = new VersionRange(versionRangeString);
 			IArtifactDescriptor localDescriptor = this.fetchDescriptor(this.local, classifier, artifactId, versionRangeString);
-			if (null != localDescriptor && this.local.contains(localDescriptor)) {
-				return ((SimplerArtifactRepository) this.local).createLocation(localDescriptor);
+			if (null != localDescriptor && requiredVersionRange.isIncluded(localDescriptor.getArtifactKey().getVersion())) {
+				URI uri = ((SimplerArtifactRepository) this.local).createLocation(localDescriptor);
+				LOG.debug(artifactId+":"+versionRangeString+" is resolved using local file "+uri);
+				return uri;
 			} else {
 				IArtifactRepository remoteRepo = this.repoManager.loadRepository(remoteP2location, new NullProgressMonitor());
 				IArtifactDescriptor remoteDescriptor = this.fetchDescriptor(remoteRepo, classifier, artifactId, versionRangeString);
@@ -188,14 +191,22 @@ public class SimpleOsgiP2Resolver {
 
 	IArtifactDescriptor fetchDescriptor(IArtifactRepository repo, String classifier, String id, String versionRangeString) {
 		VersionRange range = new VersionRange(versionRangeString);
+		LOG.debug("Looking in "+repo+" for "+ id+":"+range);
 		IQuery<IArtifactKey> query = new ArtifactKeyQuery(classifier, id, range);
 		IQueryResult<IArtifactKey> qr = repo.query(query, new NullProgressMonitor());
 		if (qr.isEmpty()) {
 			return null;
 		} else {
 			IArtifactKey akey = qr.iterator().next();
-			IArtifactDescriptor artifactDescription = repo.createArtifactDescriptor(akey);
-			return artifactDescription;
+			while(null!=akey) {
+				if (range.isIncluded(akey.getVersion())) {
+					IArtifactDescriptor artifactDescription = repo.createArtifactDescriptor(akey);
+					return artifactDescription;
+				} else {
+					akey = qr.iterator().next();
+				}
+			}
+			return null;
 		}
 	}
 
