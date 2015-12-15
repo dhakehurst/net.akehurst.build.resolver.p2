@@ -18,5 +18,5 @@ repositories {
 dependencies {
 	compile 'org.slf4j:slf4j-api:1.7+'
 	compile 'commons-io:commons-io:2.2'
-	compile 'net.akehurst.eclipse:net.akehurst.eclipse.simple.equinox:1.0.0'
+	compile 'net.akehurst.eclipse:net.akehurst.eclipse.simple.equinox:1+'
 }
